@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from django.urls import reverse
 from django.contrib.auth.models import User
 from recipes_app.models import Recipe
 
@@ -51,3 +52,16 @@ class RecipeAPITestCaseHappy(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Recipe.objects.count(), 1)
         self.assertEqual(Recipe.objects.get().author, self.user)
+
+    def test_get_recipe_detail(self):
+        recipe = Recipe.objects.create(
+            title='salad',
+            description='healthy and fresh',
+            author=self.user
+        )
+        detail_url = reverse('recipe-detail', kwargs={'pk': recipe.id})
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.get(detail_url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'salad')
