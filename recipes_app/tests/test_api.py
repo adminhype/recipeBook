@@ -1,30 +1,33 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.contrib.auth.models import User
 
+from django.contrib.auth.models import User
 from recipes_app.models import Recipe
 
 
-class RecipeAPITestCase(APITestCase):
+class RecipeAPITestCaseUnhappy(APITestCase):
 
-    def test_get_recipes_list(self):
-        url = '/recipes-list/'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='pass', password='password123')
+        self.url = '/recipes-list/'
 
-    def test_create_recipe(self):
-
-        user = User.objects.create_user(
-            username='testuser', password='password123')
-
-        url = '/recipes-list/'
-
-        data = {
-            'title': 'pancakes',
-            'description': 'milk, eggs, sugar, flour',
-            'author': user.id
+        self.recipe_data = {
+            'title': 'forbidden pancake',
+            'description': 'This recipe should not be created',
+            'author': self.user.id
         }
 
-        response = self.client.post(url, data, format='json')
+    def test_create_recipe_without_auth(self):
+        response = self.client.post(self.url, self.recipe_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+class RecipeAPITestCaseHappy(APITestCase):
+
+    def setUp(self):
+        self.url = '/recipes-list/'
+
+    def test_get_recipes_list(self):
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
