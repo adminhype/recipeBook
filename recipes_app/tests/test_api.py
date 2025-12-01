@@ -41,8 +41,9 @@ class RecipeAPITestCaseHappy(APITestCase):
         }
 
     def test_get_recipes_list(self):
-        response = self.client.get(self.url, format='json')
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
+        response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_recipe_with_auth(self):
