@@ -22,7 +22,17 @@ class RecipeAPITestCaseUnhappy(APITestCase):
 
     def test_create_recipe_without_auth(self):
         response = self.client.post(self.url, self.recipe_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_recipe_detail_without_auth(self):
+        recipe = Recipe.objects.create(
+            title='unauthorized soup',
+            description='not for public',
+            author=self.user
+        )
+        url = reverse('recipe-detail-detail', kwargs={'pk': recipe.id})
+        print(url)
+        response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -60,7 +70,7 @@ class RecipeAPITestCaseHappy(APITestCase):
             description='healthy and fresh',
             author=self.user
         )
-        detail_url = reverse('recipe-detail', kwargs={'pk': recipe.id})
+        detail_url = reverse('recipe-detail-detail', kwargs={'pk': recipe.id})
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.get(detail_url, format='json')
 
